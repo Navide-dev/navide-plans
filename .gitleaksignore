@@ -1,0 +1,6 @@
+# createSafeTodoClickHandler's tests use a placeholder document token (a
+# repeated hex counting string, not a secret); generic-api-key reads it as a
+# key. The first line is where the history added it, the second where the
+# current file holds it.
+d7c4610cd7c88f7d8fbd8bc5652800fb7de813f1:src/planSecurity.test.ts:generic-api-key:123
+src/planSecurity.test.ts:generic-api-key:239
