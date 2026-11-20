@@ -1,4 +1,4 @@
-# DRAFT — not active. Move it to .github/workflows/ to turn it on.
+# Packaging workflow (enabled 2026-11-21 with the user's approval).
 #
 # Builds, tests and packs navide.plans for every target the App ships: the
 # five Navide's release.yml builds and its publish script accepts (no Intel
