@@ -33,11 +33,14 @@ function outputFiles(directory: string): string[] {
       : [entry.name]
   )).sort()
 }
+// The plugin's own sources. backend/.venv is the build environment `uv sync`
+// creates, not a source; on Linux it holds a lib64 -> lib directory link,
+// which is neither a file nor a directory entry here.
 function sourceFiles(directory: string): string[] {
   return readdirSync(resolve(packageRoot, directory), { withFileTypes: true })
     .flatMap((entry) => entry.isDirectory()
-      ? (entry.name === '__pycache__' ? [] : sourceFiles(`${directory}/${entry.name}`))
-      : [`${directory}/${entry.name}`])
+      ? (entry.name === '__pycache__' || entry.name === '.venv' ? [] : sourceFiles(`${directory}/${entry.name}`))
+      : entry.isFile() ? [`${directory}/${entry.name}`] : [])
     .filter((file) => !file.endsWith('.test.ts') && !file.endsWith('.pyc'))
     .sort()
 }
