@@ -19,4 +19,4 @@ package = false
 default-groups = ["build"]
 
 [tool.uv.sources]
-navide-plugin-sdk = { path = "../vendor/navide_plugin_sdk-1.0.0-py3-none-any.whl" }
+navide-plugin-sdk = { url = "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide_plugin_sdk-1.0.0-py3-none-any.whl" }

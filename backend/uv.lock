@@ -61,7 +61,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "navide-plugin-sdk", path = "../vendor/navide_plugin_sdk-1.0.0-py3-none-any.whl" },
+    { name = "navide-plugin-sdk", url = "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide_plugin_sdk-1.0.0-py3-none-any.whl" },
     { name = "pyyaml", specifier = "==6.0.3" },
 ]
 
@@ -72,9 +72,9 @@ test = [{ name = "pytest", specifier = "==9.2.0" }]
 [[package]]
 name = "navide-plugin-sdk"
 version = "1.0.0"
-source = { path = "../vendor/navide_plugin_sdk-1.0.0-py3-none-any.whl" }
+source = { url = "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide_plugin_sdk-1.0.0-py3-none-any.whl" }
 wheels = [
-    { filename = "navide_plugin_sdk-1.0.0-py3-none-any.whl", hash = "sha256:9723192628830ffad9a874ff1aae5066999a83955b060bd0db1a3768b067c8f5" },
+    { url = "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide_plugin_sdk-1.0.0-py3-none-any.whl", hash = "sha256:9723192628830ffad9a874ff1aae5066999a83955b060bd0db1a3768b067c8f5" },
 ]
 
 [[package]]
