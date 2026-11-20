@@ -1,0 +1,36 @@
+{
+  "es-ES": [
+    "pane.plans.format-html",
+    "pane.plans.format-markdown",
+    "plans.share.chat-target"
+  ],
+  "fr-FR": [
+    "pane.plans.doc-badge",
+    "pane.plans.format-html",
+    "pane.plans.format-markdown",
+    "pane.plans.v2.document",
+    "pane.plans.v2.documents",
+    "plans.share.category.possible-secret",
+    "plans.share.chat-target"
+  ],
+  "de-DE": [
+    "pane.plans.todos-count",
+    "plans.share.chat-target"
+  ],
+  "pt-BR": [
+    "pane.plans.doc-badge",
+    "plans.share.chat-target"
+  ],
+  "ru-RU": [
+    "pane.plans.format-html",
+    "pane.plans.format-markdown"
+  ],
+  "vi-VN": [
+    "pane.plans.format-html",
+    "pane.plans.format-markdown"
+  ],
+  "ja-JP": [],
+  "ko-KR": [],
+  "zh-CN": [],
+  "zh-TW": []
+}

@@ -1,0 +1,38 @@
+// Ported from the Navide repository's tests/infrastructure/mermaidClassicLook.test.ts,
+// which scanned this plugin while it lived there.
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative, resolve, sep } from 'node:path'
+import { expect, it } from 'vitest'
+
+// mermaid 12 lays out flowchart, state, class and ER diagrams with ELK and
+// paints them in the `neo` look unless told otherwise. Plans keep the
+// mermaid 11 appearance, so every initialize call pins both options.
+const pluginRoot = resolve(import.meta.dirname, '../..')
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory()) return entry.name === 'node_modules' || entry.name === '__tests__' ? [] : sourceFiles(path)
+    return /\.(vue|ts)$/.test(entry.name) && !/\.test\.ts$/.test(entry.name) ? [path] : []
+  })
+}
+
+const calls = sourceFiles(join(pluginRoot, 'src')).flatMap((path) => {
+  const source = readFileSync(path, 'utf8')
+  return [...source.matchAll(/mermaid\.initialize\(\{([^}]*)\}\)/g)].map((match) => ({
+    file: relative(pluginRoot, path).split(sep).join('/'),
+    options: match[1],
+  }))
+})
+
+it('finds every mermaid.initialize call site', () => {
+  // A scan that matches nothing would pass the check below vacuously.
+  expect(calls.map((call) => call.file).sort()).toEqual(['src/retained/PlanMarkdownBody.vue'])
+})
+
+for (const { file, options } of calls) {
+  it(`pins the dagre layout and classic look in ${file}`, () => {
+    expect(options).toMatch(/\blayout: 'dagre'/)
+    expect(options).toMatch(/\blook: 'classic'/)
+  })
+}

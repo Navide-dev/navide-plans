@@ -13,10 +13,14 @@ import {
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { enUSMessages, zhTWMessages } from '@navide/plugin-ui/foundation'
 
-const repositoryRoot = resolve(import.meta.dirname, '../../..')
-const packageRoot = join(repositoryRoot, 'plugins/navide-plans')
+// The Host halves of these checks (the Navide repository's build scripts and
+// its own Plans runtime) stay in the Navide repository.
+const packageRoot = resolve(import.meta.dirname, '..')
+const pluginUiDist = join(packageRoot, 'node_modules/@navide/plugin-ui/dist')
 const supportedLocales = ['en-US', 'zh-TW'] as const
+const shadowCatalogs: Record<(typeof supportedLocales)[number], unknown> = { 'en-US': enUSMessages, 'zh-TW': zhTWMessages }
 
 function sourceText(root: string): string {
   return readdirSync(root, { withFileTypes: true })
@@ -42,7 +46,7 @@ describe('navide.plans production package boundary', () => {
 
     expect(manifest.schemaVersion).toBe(2)
     expect(manifest.id).toBe('navide.plans')
-    expect(manifest.version).toBe('1.1.9')
+    expect(manifest.version).toBe('1.1.10')
     expect(manifest.permissions.system).toEqual(['fs', 'ui', 'aiCli'])
     expect(manifest.permissions).not.toHaveProperty('plans')
     expect(manifest.permissions.shell).toBeUndefined()
@@ -102,36 +106,26 @@ describe('navide.plans production package boundary', () => {
   })
 
   it('keeps Plans-specific Review Notes UI inside the Plans package', () => {
-    const pluginUiIndex = readFileSync(join(repositoryRoot, 'packages/plugin-ui/src/index.ts'), 'utf8')
+    const pluginUiIndex = readFileSync(join(pluginUiDist, 'index.d.ts'), 'utf8')
     expect(pluginUiIndex).not.toContain('ReviewNotesPanel')
-    expect(existsSync(join(repositoryRoot, 'packages/plugin-ui/src/ReviewNotesPanel.vue'))).toBe(false)
+    expect(existsSync(join(pluginUiDist, 'ReviewNotesPanel.vue.d.ts'))).toBe(false)
     expect(existsSync(join(packageRoot, 'src/components/ReviewNotesPanel.vue'))).toBe(false)
     expect(existsSync(join(packageRoot, 'src/retained/PlanReviewToolbar.vue'))).toBe(true)
     expect(sourceText(join(packageRoot, 'src'))).toContain("./retained/PlanReviewToolbar.vue")
   })
 
   it('keeps Plans-specific security primitives package-local and decoupled from @navide/plugin-ui/shared', () => {
-    const pluginUiSharedIndex = readFileSync(
-      join(repositoryRoot, 'packages/plugin-ui/src/shared/index.ts'),
-      'utf8',
-    )
+    const pluginUiSharedIndex = readFileSync(join(pluginUiDist, 'shared/index.d.ts'), 'utf8')
     expect(pluginUiSharedIndex).not.toContain('preparePlanDocHtml')
     expect(pluginUiSharedIndex).not.toContain('createSafeTodoClickHandler')
     expect(pluginUiSharedIndex).not.toContain('validatePlanMessageEvent')
     expect(pluginUiSharedIndex).not.toContain('planSecurity')
-    expect(existsSync(join(repositoryRoot, 'packages/plugin-ui/src/shared/planSecurity.ts'))).toBe(false)
+    expect(existsSync(join(pluginUiDist, 'shared/planSecurity.d.ts'))).toBe(false)
 
     expect(existsSync(join(packageRoot, 'src/planSecurity.ts'))).toBe(true)
     const plansAppSource = readFileSync(join(packageRoot, 'src/PlansApp.vue'), 'utf8')
     expect(plansAppSource).toContain('./planSecurity')
     expect(plansAppSource).not.toContain('@navide/plugin-ui/shared')
-
-    const hostPlanRuntime = readFileSync(
-      join(repositoryRoot, 'src/renderer/src/editor/planRuntime.ts'),
-      'utf8',
-    )
-    expect(hostPlanRuntime).not.toContain('@navide/plugin-ui/shared')
-    expect(hostPlanRuntime).not.toContain('plugins/navide-plans')
   })
 
   it('keeps the Backend Wire child on the Host-private filesystem Bridge', () => {
@@ -150,12 +144,7 @@ describe('navide.plans production package boundary', () => {
     const pluginMessages = JSON.parse(
       readFileSync(join(packageRoot, `src/locales/${locale}.json`), 'utf8'),
     ) as Record<string, unknown>
-    const shadowMessages = JSON.parse(
-      readFileSync(
-        join(repositoryRoot, `packages/plugin-ui/src/foundation/i18n/locales/${locale}.json`),
-        'utf8',
-      ),
-    ) as { pane?: { plans?: Record<string, unknown> } }
+    const shadowMessages = shadowCatalogs[locale] as { pane?: { plans?: Record<string, unknown> } }
 
     // Every message the legacy recovery UI reads stays identical in the
     // package. Messages only the package uses (new in 1.1.0) are not copied
@@ -167,39 +156,6 @@ describe('navide.plans production package boundary', () => {
     const shadow = shadowMessages.pane?.plans ?? {}
     expect(Object.keys(shadow).length).toBeGreaterThan(0)
     expect(Object.fromEntries(Object.keys(shadow).map((key) => [key, plans[key]]))).toEqual(shadow)
-  })
-
-  it('ships versioned factory artifacts alongside explicit legacy recovery resources', () => {
-    const rootPackage = JSON.parse(readFileSync(join(repositoryRoot, 'package.json'), 'utf8')) as {
-      scripts?: Record<string, string>
-      build?: { extraResources?: Array<{ from?: string; to?: string }> }
-    }
-    const viteConfig = readFileSync(join(packageRoot, 'vite.config.ts'), 'utf8')
-    expect(rootPackage.scripts?.['build:plans:v2']).toBe('vite build --config plugins/navide-plans/vite.config.ts')
-    expect(viteConfig).toContain('NAVIDE_PLANS_DIST_DIR')
-    expect(viteConfig).toContain('NAVIDE_PLUGIN_ARTIFACT_VERSION')
-    expect(viteConfig).toContain("dist-plugins/navide-plans")
-    expect(rootPackage.scripts?.['build:plans:backend']).toContain('build-plans-v2-backend.mjs')
-    expect(rootPackage.scripts?.['build:plans']).toContain('build:plans:legacy')
-    expect(rootPackage.scripts?.['build:plans']).toContain('build:plans:v2')
-    expect(rootPackage.scripts?.['build:plans']).toContain('build:plans:backend')
-    expect(rootPackage.build?.extraResources).toEqual(expect.arrayContaining([
-      { from: 'dist-plugins/official-artifacts/factory-resources', to: 'official-artifacts' },
-      { from: 'dist-plugins/plans', to: 'plugins/plans' },
-    ]))
-  })
-
-  it('prepares the versioned factory artifact during pnpm dev', () => {
-    const rootPackage = JSON.parse(readFileSync(join(repositoryRoot, 'package.json'), 'utf8')) as {
-      scripts?: Record<string, string>
-    }
-    const devScript = rootPackage.scripts?.dev ?? ''
-    expect(devScript).toContain('vite build --config vite.plans.config.ts')
-    expect(devScript).toContain('build:plans:v2')
-    expect(devScript).toContain('build-plans-v2-backend.mjs')
-    expect(devScript).toContain('stage-official-plugin-artifacts.mjs')
-    expect(devScript).not.toContain('fixture')
-    expect(devScript).toContain('electron-vite dev')
   })
 
   it('isolates frontend Vite cleaning so the backend executable is preserved and no stale root assets remain', () => {
@@ -214,7 +170,7 @@ describe('navide.plans production package boundary', () => {
     expect(viteConfig).not.toContain('packages/plugin-ui/src')
     expect(viteConfig).not.toContain('alias:')
 
-    const realDistBackend = join(repositoryRoot, 'dist-plugins/navide-plans/backend/navide-plans')
+    const realDistBackend = join(packageRoot, 'dist/backend/navide-plans')
     const realBackendStatBefore = existsSync(realDistBackend)
       ? { mtimeMs: statSync(realDistBackend).mtimeMs, size: statSync(realDistBackend).size }
       : null
@@ -234,9 +190,9 @@ describe('navide.plans production package boundary', () => {
       mkdirSync(legacyAssetsDir, { recursive: true })
       writeFileSync(staleAssetFile, 'stale-root-asset\n')
 
-      const viteBin = resolve(repositoryRoot, 'node_modules/vite/bin/vite.js')
-      execSync(`"${process.execPath}" "${viteBin}" build --config plugins/navide-plans/vite.config.ts`, {
-        cwd: repositoryRoot,
+      const viteBin = resolve(packageRoot, 'node_modules/vite/bin/vite.js')
+      execSync(`"${process.execPath}" "${viteBin}" build --config vite.config.ts`, {
+        cwd: packageRoot,
         stdio: 'pipe',
         env: {
           ...process.env,

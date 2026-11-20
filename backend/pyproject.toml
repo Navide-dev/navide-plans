@@ -1,0 +1,21 @@
+# The Plans backend's own environment: the runtime dependencies plans_backend.py
+# imports, and the toolchain that packages it (scripts/build-backend.mjs),
+# pinned independently of the Navide repository's backend.
+[project]
+name = "navide-plans-backend"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "navide-plugin-sdk>=1.0.0,<2",
+    "pyyaml==6.0.3",
+]
+
+[dependency-groups]
+build = ["pyinstaller==6.22.3"]
+
+[tool.uv]
+package = false
+default-groups = ["build"]
+
+[tool.uv.sources]
+navide-plugin-sdk = { path = "../vendor/navide_plugin_sdk-1.0.0-py3-none-any.whl" }

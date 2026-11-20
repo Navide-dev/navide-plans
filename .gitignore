@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.vsix
+backend/.venv/
+__pycache__/
+# navide_plugin_sdk wheel, local until its source is decided (Release asset or vendored)
+vendor/

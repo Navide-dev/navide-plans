@@ -2,20 +2,22 @@
   "name": "@navide/navide-plans",
   "private": true,
   "type": "module",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/build-backend.mjs",
+    "build:backend": "node scripts/build-backend.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "check": "navide-plugin validate dist",
-    "package": "navide-plugin package dist --out navide-plans.vsix"
+    "test": "vitest run",
+    "check": "node scripts/navide-plugin-host.mjs validate dist",
+    "package": "node scripts/navide-plugin-host.mjs package dist --out navide-plans.vsix"
   },
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@navide/plugin-contracts": "^1.0.0",
-    "@navide/plugin-sdk": "^1.0.0",
-    "@navide/plugin-ui": "^1.0.0",
+    "@navide/plugin-contracts": "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide-plugin-contracts-1.0.0.tgz",
+    "@navide/plugin-sdk": "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide-plugin-sdk-1.0.0.tgz",
+    "@navide/plugin-ui": "https://github.com/Navide-dev/Navide/releases/download/plugin-packages-1.0.0/navide-plugin-ui-1.0.0.tgz",
     "mermaid": "^12.3.0",
     "vue": "^3.5.13",
     "vue-i18n": "^10.0.5 || ^11.0.0",
@@ -24,8 +26,11 @@
   "devDependencies": {
     "@types/node": "^22",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "^21.0.4",
     "typescript": "^5.7.2",
     "vite": "^6.4.4",
+    "vitest": "^3.2.7",
     "vue-tsc": "^2.1.10"
   }
 }
