@@ -12,6 +12,7 @@ dependencies = [
 
 [dependency-groups]
 build = ["pyinstaller==6.22.3"]
+test = ["pytest==9.2.0"]
 
 [tool.uv]
 package = false

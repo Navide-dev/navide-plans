@@ -8,6 +8,7 @@
     "build:backend": "node scripts/build-backend.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "test:backend": "uv --project backend run --locked --group test pytest backend/tests",
     "check": "node scripts/navide-plugin-host.mjs validate dist",
     "package": "node scripts/navide-plugin-host.mjs package dist --out navide-plans.vsix"
   },
