@@ -52,6 +52,11 @@ function asString(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
+/** The document without its `plan-meta` island: what the preview renders. */
+export function withoutPlanMeta(content: string): string {
+  return content.replace(PLAN_META_RE, '')
+}
+
 /**
  * Extract and validate the `plan-meta` JSON island.
  * Returns `null` when the block is missing, the JSON is malformed, or a hard

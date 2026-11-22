@@ -1420,6 +1420,28 @@ describe('PlansApp', () => {
       expect(view.find('.plan-disk-changed-banner').exists()).toBe(false)
     })
 
+    it('keeps the preview when only the plan-meta island changed', async () => {
+      const meta = state.list[0].meta as Record<string, unknown>
+      const body = '<section><h2>Scope</h2><p>Original prose.</p></section>'
+      const island = () => `<script id="plan-meta" type="application/json">${JSON.stringify(meta)}</script>`
+      state.documents[existingPath].html = `<html><head>${island()}</head><body>${body}</body></html>`
+      const view = await mountPlans()
+      const frame = view.get('iframe.plan-doc-frame').element
+      const srcdoc = frame.getAttribute('srcdoc')
+      const before = reads().length
+      meta.reviewNotes = [{ id: 'n1', author: 'user', text: 'Note written to disk', resolved: false, reply: '', anchor: '' }]
+      state.list[0].mtime = 2
+      state.documents[existingPath].mtime = 2
+      state.documents[existingPath].html = `<html><head>${island()}</head><body>${body}</body></html>`
+      state.subscriptionListener?.({})
+      await new Promise(resolve => setTimeout(resolve, 260))
+      await flushPromises()
+      expect(reads().length).toBe(before + 1)
+      expect(view.get('iframe.plan-doc-frame').element).toBe(frame)
+      expect(frame.getAttribute('srcdoc')).toBe(srcdoc)
+      expect(srcdoc).not.toContain('Note written to disk')
+    })
+
     it('does not reload when the listing shows the copy already open', async () => {
       await mountPlans()
       const before = reads().length

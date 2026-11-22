@@ -25,7 +25,7 @@ import PlanShareButton from './PlanShareButton.vue'
 import NotificationHost from './retained/NotificationHost.vue'
 import SectionConflictDialog from './retained/SectionConflictDialog.vue'
 import { preserveConflictSide, resolvePlanStore, type SectionBody, type SectionConflict, type WriteResult } from './retained/planStore'
-import { htmlPlanAwaitingUser, parseHtmlPlanMeta, replaceSectionBody as spliceHtmlSection, syncHeaderMarkup } from './retained/usePlanHtml'
+import { htmlPlanAwaitingUser, parseHtmlPlanMeta, replaceSectionBody as spliceHtmlSection, syncHeaderMarkup, withoutPlanMeta } from './retained/usePlanHtml'
 import { sharePlanToGit } from './retained/planShare'
 import { plansTransport } from './retained/transport'
 import { listAllPlans, readWholeDocument } from './planPaging'
@@ -240,7 +240,13 @@ let previewAnchorCounts: Record<string, number> = {}
 const currentAnchorCounts = computed(() => JSON.stringify(countNoteAnchors(selected.value?.meta?.reviewNotes ?? [])))
 const sectionEditing = ref(false)
 const snapshotPreview = ref<{ relPath: string; label: string; html: string; anchors: Record<string, number> } | null>(null)
-const previewHtml = computed(() => snapshotPreview.value?.html ?? selected.value?.html ?? '')
+// A write that changes only the plan-meta island (a review note, a metadata
+// update) changes nothing the preview shows. Keep the rendered copy, so the
+// reload that write's plans.changed triggers never re-renders the frame.
+const previewHtml = computed<string>((previous) => {
+  const next = snapshotPreview.value?.html ?? selected.value?.html ?? ''
+  return previous && next && withoutPlanMeta(previous) === withoutPlanMeta(next) ? previous : next
+})
 const previewTodoIds = computed(() => JSON.stringify(snapshotPreview.value ? [] : selected.value?.meta?.todos.map(todo => todo.id) ?? []))
 const preparedDoc = computed(() => {
   const html = previewHtml.value
