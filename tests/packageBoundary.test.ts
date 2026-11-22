@@ -46,7 +46,7 @@ describe('navide.plans production package boundary', () => {
 
     expect(manifest.schemaVersion).toBe(2)
     expect(manifest.id).toBe('navide.plans')
-    expect(manifest.version).toBe('1.1.10')
+    expect(manifest.version).toBe('1.1.11')
     expect(manifest.permissions.system).toEqual(['fs', 'ui', 'aiCli'])
     expect(manifest.permissions).not.toHaveProperty('plans')
     expect(manifest.permissions.shell).toBeUndefined()
